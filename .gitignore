@@ -1,1 +1,3 @@
 code .gitignore
+.env
+.idea/target/
