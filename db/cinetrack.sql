@@ -27,7 +27,7 @@ CREATE TABLE films (
     id        SERIAL PRIMARY KEY,
     titre     VARCHAR(150) NOT NULL,
     genre     VARCHAR(50),
-    duree     INTEGER      NOT NULL,
+    duree     INTEGER      NOT NULL CHECK (duree > 0),
     note      NUMERIC(3,1) CHECK (note >= 0 AND note <= 10),
     synopsis  TEXT
 );
@@ -35,7 +35,7 @@ CREATE TABLE films (
 CREATE TABLE salles (
     id         SERIAL PRIMARY KEY,
     nom        VARCHAR(50) NOT NULL UNIQUE,
-    capacite   INTEGER     NOT NULL,
+    capacite   INTEGER     NOT NULL CHECK (capacite > 0),
     equipment  VARCHAR(50)[]
 );
 
@@ -48,12 +48,17 @@ CREATE TABLE seances (
     placesdispo  INTEGER NOT NULL CHECK (placesdispo >= 0)
 );
 
+-- Index sur les clés étrangères (jointures plus rapides)
+CREATE INDEX idx_seances_idfilm  ON seances(idfilm);
+CREATE INDEX idx_seances_idsalle ON seances(idsalle);
+
 CREATE TABLE audit_log (
     id          SERIAL PRIMARY KEY,
     table_name  VARCHAR(50) NOT NULL,
     record_id   INTEGER,
     action      VARCHAR(10) NOT NULL,
-    user_id     INTEGER REFERENCES utilisateur(id),
+    -- SET NULL : on garde l'historique si l'utilisateur est supprimé
+    user_id     INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL,
     old_data    JSONB,
     new_data    JSONB,
     created_at  TIMESTAMP NOT NULL DEFAULT now()
@@ -80,8 +85,8 @@ INSERT INTO salles (nom, capacite, equipment) VALUES
     ('Salle 2',  80, ARRAY['2D']);
 
 INSERT INTO seances (idfilm, idsalle, dateseance, heure, placesdispo) VALUES
-    (1, 1, '2026-09-05', '20:00', 120),
-    (2, 2, '2026-09-05', '18:30',  80);
+    (1, 1, '2026-11-20', '20:00', 120),
+    (2, 2, '2026-11-21', '18:30',  80);
 
 -- ------------------------------------------------------------
 -- Journal d'audit : fonction + triggers
