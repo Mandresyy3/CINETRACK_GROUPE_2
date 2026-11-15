@@ -4,16 +4,17 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 
-import Modele.UserDAO;
+import Modele.UserDAOPostgres;
 import Modele.UserModele;
 import View.FenetrePrincipale;
+import dao.UserDAO;
 
 public class UserControleur {
 
-    private UserDAO dao; 
+    private UserDAO dao;
 
     public UserControleur() {
-        dao = new UserDAO();
+        dao = new UserDAOPostgres();
     }
 
     public boolean ajouterGestionaire(HashMap<String, String> user) throws NoSuchAlgorithmException {

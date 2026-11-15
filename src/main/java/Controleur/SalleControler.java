@@ -2,11 +2,12 @@ package Controleur;
 
 import java.util.List;
 import Modele.Salle;
-import Modele.SalleDAO;
+import Modele.SalleDAOPostgres;
+import dao.SalleDAO;
 
 public class SalleControler {
 
-    private SalleDAO salleDAO = new SalleDAO();
+    private SalleDAO salleDAO = new SalleDAOPostgres();
 
     public List<Salle> getAll() {
         return salleDAO.findAll();

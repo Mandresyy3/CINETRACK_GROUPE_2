@@ -2,17 +2,17 @@ package main;
 
 import java.util.List;
 
-import Modele.AuditLogDAO;
+import Modele.AuditLogDAOPostgres;
 import Modele.AuditLogModele;
-import Modele.UserDAO;
+import Modele.UserDAOPostgres;
 import Modele.UserModele;
 import View.FenetrePrincipale;
 
 public class TestAudit {
 
     public static void main(String[] args) {
-        UserDAO userDAO = new UserDAO();
-        AuditLogDAO auditDAO = new AuditLogDAO();
+        UserDAOPostgres userDAO = new UserDAOPostgres();
+        AuditLogDAOPostgres auditDAO = new AuditLogDAOPostgres();
 
         // CAS 1 : un utilisateur connecté (admin, id 1) crée puis supprime un compte
         FenetrePrincipale.user_id = 1;
@@ -54,7 +54,7 @@ public class TestAudit {
         System.out.println("\nTest terminé : comptes de test supprimés.");
     }
 
-    private static AuditLogModele dernierLog(AuditLogDAO dao) {
+    private static AuditLogModele dernierLog(AuditLogDAOPostgres dao) {
         List<AuditLogModele> logs = dao.getAll();
         return logs.isEmpty() ? null : logs.get(0);
     }

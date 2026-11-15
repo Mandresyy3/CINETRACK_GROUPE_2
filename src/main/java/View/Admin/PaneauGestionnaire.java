@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import Controleur.UserControleur;
+import Modele.UserDAOPostgres;
 import Modele.UserModele;
 import View.*;
 
@@ -173,7 +174,7 @@ public class PaneauGestionnaire extends AbstractPanel {
         int confirm = JOptionPane.showConfirmDialog(null, "Supprimer " + login + " ?");
 
         if (confirm == JOptionPane.YES_OPTION) {
-            new Modele.UserDAO().suprimer(login);
+            new UserDAOPostgres().suprimer(login);
             chargerUsers();
         }
     }

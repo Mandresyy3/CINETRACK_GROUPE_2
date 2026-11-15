@@ -4,14 +4,16 @@ import java.util.HashMap;
 import java.util.List;
 
 import Modele.Film;
-import Modele.FilmDAO;
+import Modele.FilmDAOPostgres;
+import dao.FilmDAO;
+
 import exceptions.NoteInvalideException;
 
 public class FilmControleur {
     FilmDAO dao;
 
     public FilmControleur() {
-        dao = new FilmDAO();
+        dao = new FilmDAOPostgres();
     }
 
     public boolean ajouter(HashMap<String, String> films) {

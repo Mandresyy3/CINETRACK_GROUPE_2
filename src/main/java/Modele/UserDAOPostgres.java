@@ -5,6 +5,7 @@ import java.util.List;
 
 import Connexion.DataBaseConn;
 import View.FenetrePrincipale;
+import dao.UserDAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,12 +14,13 @@ import java.sql.SQLException;
 
 import util.HashUtil;
 
-public class UserDAO extends DataBaseConn {
+public class UserDAOPostgres extends DataBaseConn implements UserDAO {
     // objet pour hasher les mots de passe
 
-    public UserDAO() {
+    public UserDAOPostgres() {
     }
 
+    @Override
     public List<UserModele> getAll() {
         String sql = "SELECT * FROM utilisateur";
 
@@ -45,6 +47,7 @@ public class UserDAO extends DataBaseConn {
 
     }
 
+    @Override
     public boolean ajouter(UserModele user) {
 
         String sql = "INSERT INTO utilisateur (login,motDePasse,admin) VALUES (?,?,?)";
@@ -73,6 +76,7 @@ public class UserDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean verfier(UserModele user) {
         String sql = "SELECT motDePasse FROM utilisateur WHERE login = ?";
 
@@ -99,6 +103,7 @@ public class UserDAO extends DataBaseConn {
 
     }
 
+    @Override
     public boolean suprimer(String userName) {
         String sql = "DELETE FROM utilisateur WHERE login = ?";
 
@@ -114,6 +119,7 @@ public class UserDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean isAdmin(UserModele user) {
         String sql = "SELECT admin FROM utilisateur WHERE login = ?";
 
@@ -133,6 +139,7 @@ public class UserDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean update(UserModele user) {
 
         String sql = "UPDATE utilisateur SET login = ?, admin = ? WHERE id = ?";
@@ -156,6 +163,7 @@ public class UserDAO extends DataBaseConn {
         }
     }
 
+    @Override
     public int getUserID(UserModele gestionnaire) {
         String sql = "SELECT id FROM utilisateur WHERE login = ?";
 

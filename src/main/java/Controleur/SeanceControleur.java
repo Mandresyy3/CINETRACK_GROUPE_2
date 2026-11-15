@@ -1,14 +1,13 @@
 package Controleur;
 
-import Modele.Film;
-import Modele.FilmDAO;
-import Modele.Salle;
-import Modele.SalleDAO;
-import Modele.Seance;
-import Modele.SeanceDAO;
+import Modele.*;
 import exceptions.FilmIntrouvableException;
 import java.util.ArrayList;
 import java.util.List;
+import Modele.FilmDAOPostgres;
+import dao.FilmDAO;
+import dao.SalleDAO;
+import dao.SeanceDAO;
 
 /**
  * SeanceControleur — Couche de coordination entre FenetreSeance et les DAO.
@@ -27,7 +26,7 @@ public class SeanceControleur {
     /** DAO pour accéder aux films */
     private FilmDAO filmDAO;
 
-    private SalleDAO salleDAO = new SalleDAO();
+    private SalleDAO salleDAO = new SalleDAOPostgres();
 
     // -------------------------------------------------------------------------
     // Constructeur
@@ -37,8 +36,8 @@ public class SeanceControleur {
      * Crée le contrôleur et initialise les DAO.
      */
     public SeanceControleur() {
-        this.seanceDAO = new SeanceDAO();
-        this.filmDAO   = new FilmDAO();
+        this.seanceDAO = new SeanceDAOPostgres();
+        this.filmDAO = new FilmDAOPostgres();
     }
 
     public List<Salle> chargerSalles() {
@@ -94,7 +93,7 @@ public class SeanceControleur {
     /**
      * Retourne toutes les séances d'un film donné.
      *
-     * @param idFilm Identifiant du film
+     * @param titre Titre du film (ou une partie du titre)
      * @return Liste des séances du film
      */
     public List<Seance> chargerSeancesParFilm(String titre) {

@@ -1,6 +1,7 @@
 package Modele;
 
 import java.sql.*;
+import dao.FilmDAO;
 import java.util.ArrayList;
 import java.util.List;
 import View.FenetrePrincipale;
@@ -8,11 +9,12 @@ import Connexion.DataBaseConn;
 import exceptions.FilmIntrouvableException;
 import exceptions.NoteInvalideException;
 
-public class FilmDAO extends DataBaseConn{
+public class FilmDAOPostgres extends DataBaseConn implements FilmDAO {
 
     // -------------------------------------------------------------------------
     // findAll
     // -------------------------------------------------------------------------
+    @Override
     public List<Film> findAll() {
         List<Film> films = new ArrayList<>();
         String sql = "SELECT id, titre, genre, duree, note, synopsis FROM films ORDER BY titre";
@@ -35,6 +37,7 @@ public class FilmDAO extends DataBaseConn{
     // -------------------------------------------------------------------------
     // findByGenre
     // -------------------------------------------------------------------------
+    @Override
     public List<Film> rechercherParGenre(String genre) {
         List<Film> films = new ArrayList<>();
         String sql = "SELECT id, titre, genre, duree, note, synopsis FROM films WHERE genre ILIKE ? ORDER BY titre";
@@ -61,6 +64,7 @@ public class FilmDAO extends DataBaseConn{
     // -------------------------------------------------------------------------
     // rechercherParTitre
     // -------------------------------------------------------------------------
+    @Override
     public List<Film> rechercherParTitre(String motCle) {
         List<Film> films = new ArrayList<>();
         String sql = "SELECT id, titre, genre, duree, note, synopsis FROM films WHERE titre ILIKE ? ORDER BY titre";
@@ -86,6 +90,7 @@ public class FilmDAO extends DataBaseConn{
     // -------------------------------------------------------------------------
     // insert
     // -------------------------------------------------------------------------
+    @Override
     public boolean ajouter(Film film) {
         if (film.getNote() < 0 || film.getNote() > 10) {
             throw new NoteInvalideException(film.getNote());
@@ -118,6 +123,7 @@ public class FilmDAO extends DataBaseConn{
     // -------------------------------------------------------------------------
     // update
     // -------------------------------------------------------------------------
+    @Override
     public boolean update(Film film) {
         if (film.getNote() < 0 || film.getNote() > 10) {
             throw new NoteInvalideException(film.getNote());
@@ -154,6 +160,7 @@ public class FilmDAO extends DataBaseConn{
     // -------------------------------------------------------------------------
     // delete
     // -------------------------------------------------------------------------
+    @Override
     public boolean delete(int id) {
         String sql = "DELETE FROM films WHERE id = ?";
 
