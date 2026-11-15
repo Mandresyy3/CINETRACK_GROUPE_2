@@ -23,9 +23,19 @@ public class UserControleur {
 
     public boolean verifierConnexion(HashMap<String, String> user) {
         UserModele gestionnaire = new UserModele(user.get("login"), user.get("mp"), false);
-        isAdmin(gestionnaire);
-        FenetrePrincipale.user_id = dao.getUserID(gestionnaire);
-        return dao.verfier(gestionnaire);
+
+        boolean connecte = dao.verfier(gestionnaire);
+
+        if (connecte) {
+            // Mot de passe correct : on retient qui est connecté (sert à l'audit)
+            isAdmin(gestionnaire);
+            FenetrePrincipale.user_id = dao.getUserID(gestionnaire);
+        } else {
+            // Échec : personne n'est connecté
+            FenetrePrincipale.user_id = 0;
+            FenetrePrincipale.isadmin = false;
+        }
+        return connecte;
     }
 
     public void isAdmin(UserModele gestionnaire) {

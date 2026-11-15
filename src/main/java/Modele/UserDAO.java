@@ -39,9 +39,10 @@ public class UserDAO extends DataBaseConn {
 
             return users;
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println("Erreur chargement utilisateurs : " + e.getMessage());
         }
-        return null;
+        return new ArrayList<>();
+
     }
 
     public boolean ajouter(UserModele user) {
@@ -58,9 +59,13 @@ public class UserDAO extends DataBaseConn {
             stmt.setString(1, user.getUserName());
             stmt.setString(2, hashedPSW);
             stmt.setBoolean(3, user.isAdmin());
-            return stmt.execute();
+            return stmt.executeUpdate() > 0;
         } catch (SQLException sqle) {
-            System.out.println("Message " + sqle.getMessage());
+            if ("23505".equals(sqle.getSQLState())) {
+                System.err.println("Ce login existe déjà : " + user.getUserName());
+            } else {
+                System.err.println("Erreur SQL : " + sqle.getMessage());
+            }
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -102,9 +107,9 @@ public class UserDAO extends DataBaseConn {
             pstmt.setString(1, userName);
             super.changeUserID(c , FenetrePrincipale.user_id);   // <-- ajouté
 
-            return pstmt.execute();
+            return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println("Erreur suppression utilisateur : " + e.getMessage());
         }
         return false;
     }

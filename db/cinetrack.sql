@@ -52,17 +52,42 @@ CREATE TABLE seances (
 CREATE INDEX idx_seances_idfilm  ON seances(idfilm);
 CREATE INDEX idx_seances_idsalle ON seances(idsalle);
 
-CREATE TABLE audit_log (
-    id          SERIAL PRIMARY KEY,
-    table_name  VARCHAR(50) NOT NULL,
-    record_id   INTEGER,
-    action      VARCHAR(10) NOT NULL,
-    -- SET NULL : on garde l'historique si l'utilisateur est supprimé
-    user_id     INTEGER REFERENCES utilisateur(id) ON DELETE SET NULL,
-    old_data    JSONB,
-    new_data    JSONB,
-    created_at  TIMESTAMP NOT NULL DEFAULT now()
-);
+CREATE OR REPLACE FUNCTION fn_audit_log() RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+v_user_id INT;
+BEGIN
+BEGIN
+        v_user_id := current_setting('app.current_user_id', true)::INT;
+EXCEPTION WHEN OTHERS THEN
+        v_user_id := NULL;
+END;
+
+    -- Personne de connecté (id 0) : on enregistre NULL
+    IF v_user_id IS NOT NULL AND v_user_id <= 0 THEN
+        v_user_id := NULL;
+END IF;
+
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log(table_name, record_id, action, user_id, old_data, new_data)
+        VALUES (TG_TABLE_NAME, NEW.id, 'INSERT', v_user_id, NULL, to_jsonb(NEW) - 'motdepasse');
+RETURN NEW;
+
+ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log(table_name, record_id, action, user_id, old_data, new_data)
+        VALUES (TG_TABLE_NAME, NEW.id, 'UPDATE', v_user_id, to_jsonb(OLD) - 'motdepasse', to_jsonb(NEW) - 'motdepasse');
+RETURN NEW;
+
+ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log(table_name, record_id, action, user_id, old_data, new_data)
+        VALUES (TG_TABLE_NAME, OLD.id, 'DELETE', v_user_id, to_jsonb(OLD) - 'motdepasse', NULL);
+RETURN OLD;
+END IF;
+
+RETURN NULL;
+END;
+$$;
 
 -- ------------------------------------------------------------
 -- Données de départ (insérées AVANT les triggers pour ne pas
