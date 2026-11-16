@@ -1,7 +1,10 @@
 # CineTrack
-En **Java** avec une base **PostgreSQL**.
 
-L'interface actuelle est en **Swing**(on modifie en javaFX plus tard). L'architecture suit le modèle MVC (packages `Modele`, `View`, `Controleur`).
+Application de gestion de cinéma (films, salles, séances, utilisateurs) en **Java** avec une base **PostgreSQL**.
+Projet fil rouge du BTS SIO SLAM, MCCI Business School.
+
+L'interface actuelle est en **Swing** (la migration vers JavaFX/FXML est prévue à l'étape 2 du projet).
+Architecture : MVC avec une couche DAO définie par des **interfaces** (voir la section 4).
 
 ---
 
@@ -9,7 +12,7 @@ L'interface actuelle est en **Swing**(on modifie en javaFX plus tard). L'archite
 
 | Outil | Version | Remarque |
 |---|---|---|
-| JDK | **25** (ex. Eclipse Adoptium) | Le `pom.xml` impose Java 25 |
+| JDK | **21** (Eclipse Temurin) | Le `pom.xml` impose Java 21, comme dans le cours Maven |
 | PostgreSQL + pgAdmin | 14 ou plus | Retenir le mot de passe de l'utilisateur `postgres` |
 | Git | récent | |
 | IntelliJ IDEA | récent | Maven est déjà intégré à l'IDE |
@@ -58,7 +61,7 @@ Chaque membre de l'équipe a son propre `.env`.
 
 1. Ouvrir le dossier du projet (`File > Open`, choisir le dossier qui contient `pom.xml`).
 2. Attendre que Maven télécharge les dépendances (barre de progression en bas).
-3. Vérifier que le SDK du projet est le JDK 25 (`File > Project Structure`).
+3. Vérifier que le SDK du projet est le **JDK 21** (`File > Project Structure > Project`, Language level 21).
 4. Clic droit sur `src/main/java/main/Main.java`, puis **Run 'Main.main()'**.
 5. Vérifier que le **Working directory** (`Run > Edit Configurations`) est la racine du projet, là où se trouve le `.env`.
 
@@ -80,26 +83,35 @@ Compte administrateur créé par le script SQL (**réservé au développement**)
 
 ---
 
-## 4. Structure du projet
+## 4. Architecture et structure du projet
 
 ```
 CINETRACK_GROUPE_2/
 ├── db/
 │   └── cinetrack.sql          Script de création de la base (tables, clés étrangères, audit)
 ├── src/main/java/
-│   ├── main/                  Point d'entrée (Main) et tests manuels
+│   ├── main/                  Point d'entrée (Main) et test manuel (TestAudit)
 │   ├── Connexion/             DataBaseConn : connexion JDBC et utilisateur courant pour l'audit
-│   ├── Modele/                Classes métier (Film, Salle, Seance, ...) et DAO (accès SQL)
+│   ├── Modele/                Classes métier (Film, Salle, Seance, ...) et implémentations DAO (XxxDAOPostgres)
+│   ├── dao/                   Interfaces DAO (FilmDAO, SalleDAO, SeanceDAO, UserDAO, AuditLogDAO)
 │   ├── Controleur/            Logique entre la vue et les DAO
 │   ├── View/                  Interface Swing (View/Admin : écrans administrateur)
 │   ├── exceptions/            Exceptions métier
 │   └── util/                  Outils (HashUtil, EnvLoader)
-├── pom.xml                    Dépendances Maven (driver PostgreSQL)
+├── pom.xml                    Dépendances Maven (driver PostgreSQL, JavaFX), Java 21
 ├── .env.example               Modèle de configuration (copier en .env)
 └── .gitignore
 ```
 
-Chaîne d'appel : **View → Controleur → DAO (Modele) → PostgreSQL**.
+Chaîne d'appel actuelle : **View → Controleur → DAO (interface dans `dao/`) → DAOPostgres (dans `Modele/`) → PostgreSQL**.
+La couche **Service** sera insérée entre le contrôleur et le DAO (étape 2).
+
+### Convention DAO
+
+- L'**interface** décrit ce que le DAO sait faire, sans code SQL : `dao/FilmDAO.java`.
+- L'**implémentation** contient le SQL (JDBC, requêtes préparées) : `Modele/FilmDAOPostgres.java`, qui fait `implements FilmDAO`.
+- Le code qui utilise un DAO déclare le **type de l'interface** : `FilmDAO dao = new FilmDAOPostgres();`.
+  Une classe doit à terme **recevoir** son DAO par son constructeur (injection de dépendances) au lieu de le créer avec `new`.
 
 ---
 
@@ -116,8 +128,8 @@ Chaîne d'appel : **View → Controleur → DAO (Modele) → PostgreSQL**.
 Règles de la base :
 
 - une séance doit pointer vers un film **et** une salle existants (clés étrangères) ;
-- une salle ne peut pas avoir deux séances au même jour et à la même heure ;
-- supprimer un film ou une salle supprime aussi ses séances (`ON DELETE CASCADE`).
+- supprimer un film ou une salle supprime aussi ses séances (`ON DELETE CASCADE`) ;
+- la détection des conflits de séances (une salle réservée deux fois au même créneau) est prévue à l'étape 4.
 
 ### Audit
 
@@ -171,14 +183,29 @@ Fichiers qui ne doivent **jamais** être envoyés : `.env`, `.idea/`, `target/`.
 | `Connection refused` | PostgreSQL n'est pas démarré, ou le port n'est pas 5432. |
 | `database "cinetrack" does not exist` | La base n'a pas été créée (voir 2.2). |
 | `relation "..." does not exist` | Le script `db/cinetrack.sql` n'a pas été exécuté sur cette base. |
-| `invalid source release: 25` | Le JDK utilisé n'est pas le 25 (voir `File > Project Structure`). |
+| `invalid source release: 21` ou `release version 21 not supported` | Le JDK utilisé n'est pas le 21 (voir `File > Project Structure`). |
+| `UnsupportedClassVersionError ... class file version 69.0` | Des fichiers ont été compilés avec un autre JDK. Faire `Build > Rebuild Project`. |
 | Caractères accentués illisibles | Définir l'encodage en UTF-8 (`pom.xml` le fait déjà pour Maven). |
 
 ---
 
-## 8. Limites connues (à traiter)
+## 8. Avancement de l'étape 2 (échéance du 17/11/2026)
 
-- Les mots de passe sont hachés en **SHA-256 sans sel** : à remplacer par Argon2id ou bcrypt.
+- [x] Model
+- [x] DAO Interface (`dao/`)
+- [x] DAO Impl JDBC/PostgreSQL (`XxxDAOPostgres`)
+- [x] Connexion à PostgreSQL (`.env` et `DataBaseConn`)
+- [x] JDK 21 et dépendances JavaFX dans le `pom.xml`
+- [ ] Service
+- [ ] Injection de dépendances (assemblage dans le `Main`)
+- [ ] FXML, CSS et contrôleurs JavaFX
+
+---
+
+## 9. Limites connues (à traiter)
+
+- Les contrôleurs appellent encore directement les DAO (la couche Service n'existe pas encore).
+- Les mots de passe sont hachés en **SHA-256 sans sel** : à remplacer par bcrypt (étape 6).
 - Le contrôle d'accès administrateur est surtout fait dans l'interface (menus masqués) : il doit aussi être vérifié côté code, avec refus par défaut.
 - L'application se connecte avec le compte `postgres` (tous les droits) : prévoir un compte applicatif aux droits minimaux.
 - Aucun test automatisé JUnit pour l'instant.
