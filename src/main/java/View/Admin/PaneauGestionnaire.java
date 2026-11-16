@@ -11,10 +11,11 @@ import Controleur.UserControleur;
 import Modele.UserDAOPostgres;
 import Modele.UserModele;
 import View.*;
+import main.Main;
 
 public class PaneauGestionnaire extends AbstractPanel {
 
-    private UserControleur controleur = new UserControleur();
+    private UserControleur controleur = Main.userControleur();
 
     private DefaultTableModel model;
     private JTable table;
@@ -174,7 +175,7 @@ public class PaneauGestionnaire extends AbstractPanel {
         int confirm = JOptionPane.showConfirmDialog(null, "Supprimer " + login + " ?");
 
         if (confirm == JOptionPane.YES_OPTION) {
-            new UserDAOPostgres().suprimer(login);
+            controleur.supprimer(login);
             chargerUsers();
         }
     }

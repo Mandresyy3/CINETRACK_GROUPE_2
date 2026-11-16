@@ -11,10 +11,11 @@ import Controleur.FilmControleur;
 import Modele.Film;
 import View.AbstractPanel;
 import View.FenetrePrincipale;
+import main.Main;
 
 public class PaneauGestionFilms extends AbstractPanel {
 
-    private FilmControleur controleur = new FilmControleur();
+    private FilmControleur controleur = Main.filmControleur();
 
     private DefaultTableModel model;
     private JTable table;

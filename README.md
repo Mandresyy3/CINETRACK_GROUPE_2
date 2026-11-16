@@ -4,7 +4,8 @@ Application de gestion de cinéma (films, salles, séances, utilisateurs) en **J
 Projet fil rouge du BTS SIO SLAM, MCCI Business School.
 
 L'interface actuelle est en **Swing** (la migration vers JavaFX/FXML est prévue à l'étape 2 du projet).
-Architecture : MVC avec une couche DAO définie par des **interfaces** (voir la section 4).
+Architecture : MVC en couches (Contrôleur, Service, DAO), avec des **interfaces** pour les DAO et une
+**injection de dépendances** par constructeur (voir la section 4).
 
 ---
 
@@ -90,28 +91,43 @@ CINETRACK_GROUPE_2/
 ├── db/
 │   └── cinetrack.sql          Script de création de la base (tables, clés étrangères, audit)
 ├── src/main/java/
-│   ├── main/                  Point d'entrée (Main) et test manuel (TestAudit)
+│   ├── main/                  Point d'entrée (Main, qui assemble aussi les objets) et test manuel (TestAudit)
 │   ├── Connexion/             DataBaseConn : connexion JDBC et utilisateur courant pour l'audit
 │   ├── Modele/                Classes métier (Film, Salle, Seance, ...) et implémentations DAO (XxxDAOPostgres)
 │   ├── dao/                   Interfaces DAO (FilmDAO, SalleDAO, SeanceDAO, UserDAO, AuditLogDAO)
-│   ├── Controleur/            Logique entre la vue et les DAO
+│   ├── service/               Services (règles métier) : ils reçoivent leur DAO par le constructeur
+│   ├── Controleur/            Contrôleurs : ils reçoivent leur Service par le constructeur
 │   ├── View/                  Interface Swing (View/Admin : écrans administrateur)
-│   ├── exceptions/            Exceptions métier
+│   ├── exceptions/            Exceptions métier (MetierException, AccesDonneesException, ...)
 │   └── util/                  Outils (HashUtil, EnvLoader)
 ├── pom.xml                    Dépendances Maven (driver PostgreSQL, JavaFX), Java 21
 ├── .env.example               Modèle de configuration (copier en .env)
 └── .gitignore
 ```
 
-Chaîne d'appel actuelle : **View → Controleur → DAO (interface dans `dao/`) → DAOPostgres (dans `Modele/`) → PostgreSQL**.
-La couche **Service** sera insérée entre le contrôleur et le DAO (étape 2).
+Chaîne d'appel actuelle :
+**View → Controleur → Service → DAO (interface dans `dao/`) → DAOPostgres (dans `Modele/`) → PostgreSQL**.
+
+### Rôle de chaque couche
+
+- **Contrôleur** : lit la saisie, appelle le Service, traduit une exception en message pour l'écran. Aucun SQL, aucune règle métier.
+- **Service** : contient les règles métier (par exemple : note entre 0 et 10, deux salles ne portent pas le même nom).
+  En cas de refus ou d'échec, il lève une exception (`MetierException`, `AccesDonneesException`) au lieu de renvoyer `false`.
+- **DAO** : le seul endroit où il y a du SQL (JDBC, requêtes préparées).
 
 ### Convention DAO
 
 - L'**interface** décrit ce que le DAO sait faire, sans code SQL : `dao/FilmDAO.java`.
-- L'**implémentation** contient le SQL (JDBC, requêtes préparées) : `Modele/FilmDAOPostgres.java`, qui fait `implements FilmDAO`.
+- L'**implémentation** contient le SQL : `Modele/FilmDAOPostgres.java`, qui fait `implements FilmDAO`.
 - Le code qui utilise un DAO déclare le **type de l'interface** : `FilmDAO dao = new FilmDAOPostgres();`.
-  Une classe doit à terme **recevoir** son DAO par son constructeur (injection de dépendances) au lieu de le créer avec `new`.
+
+### Injection de dépendances
+
+Une classe ne crée pas ses dépendances avec `new` : elle les **reçoit par son constructeur**
+(un contrôleur reçoit son Service, un Service reçoit son DAO).
+L'assemblage est fait à **un seul endroit**, dans `Main` : `filmControleur()`, `salleControleur()`,
+`seanceControleur()` et `userControleur()` fabriquent la chaîne DAO, Service, Contrôleur.
+Les vues demandent leur contrôleur à `Main` (par exemple `Main.filmControleur()`).
 
 ---
 
@@ -196,15 +212,16 @@ Fichiers qui ne doivent **jamais** être envoyés : `.env`, `.idea/`, `target/`.
 - [x] DAO Impl JDBC/PostgreSQL (`XxxDAOPostgres`)
 - [x] Connexion à PostgreSQL (`.env` et `DataBaseConn`)
 - [x] JDK 21 et dépendances JavaFX dans le `pom.xml`
-- [ ] Service
-- [ ] Injection de dépendances (assemblage dans le `Main`)
+- [x] Service
+- [x] Injection de dépendances (assemblage dans le `Main`)
 - [ ] FXML, CSS et contrôleurs JavaFX
 
 ---
 
 ## 9. Limites connues (à traiter)
 
-- Les contrôleurs appellent encore directement les DAO (la couche Service n'existe pas encore).
+- Seul `AuditLogControleur` appelle encore directement son DAO (pas de service d'audit).
+- Les vues Swing demandent leur contrôleur à `Main` : assemblage provisoire, à remplacer par celui de JavaFX.
 - Les mots de passe sont hachés en **SHA-256 sans sel** : à remplacer par bcrypt (étape 6).
 - Le contrôle d'accès administrateur est surtout fait dans l'interface (menus masqués) : il doit aussi être vérifié côté code, avec refus par défaut.
 - L'application se connecte avec le compte `postgres` (tous les droits) : prévoir un compte applicatif aux droits minimaux.

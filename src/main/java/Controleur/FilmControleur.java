@@ -4,28 +4,29 @@ import java.util.HashMap;
 import java.util.List;
 
 import Modele.Film;
-import Modele.FilmDAOPostgres;
-import dao.FilmDAO;
-
+import exceptions.MetierException;
 import exceptions.NoteInvalideException;
+import service.FilmService;
+
 
 public class FilmControleur {
-    FilmDAO dao;
 
-    public FilmControleur() {
-        dao = new FilmDAOPostgres();
+    private final FilmService filmService;
+
+    // Injection par constructeur : le contrôleur reçoit son Service, il ne le fabrique pas
+    public FilmControleur(FilmService filmService) {
+        this.filmService = filmService;
     }
 
     public boolean ajouter(HashMap<String, String> films) {
         try {
-            Double note = Double.parseDouble(films.get("Note"));
-            if (note >= 0.0 && note <= 10) {
-                return dao.ajouter(creeFilms(films));
-            } else {
-                throw new NoteInvalideException(0);
-            }
+            filmService.ajouterFilm(creeFilms(films));
+            return true;
         } catch (NoteInvalideException nie) {
-            System.out.println(nie.getLocalizedMessage() + " test 2");
+            System.out.println(nie.getLocalizedMessage());
+            return false;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
             return false;
         }
     }
@@ -39,26 +40,39 @@ public class FilmControleur {
                     films.get("Synopsys"));
         } catch (Exception e) {
             System.err.println("messgae " + e.getCause() + "    " + e.getLocalizedMessage());
-            ;
         }
         return new Film();
     }
 
     public List<Film> chercherParTitre(String titre) {
-        return dao.rechercherParTitre(titre);
+        return filmService.rechercherParTitre(titre);
     }
 
     public List<Film> chercherParGenre(String genre) {
-        return dao.rechercherParGenre(genre);
+        return filmService.rechercherParGenre(genre);
     }
 
     public List<Film> recupereFilm() {
-        return dao.findAll();
+        return filmService.listerFilms();
     }
+
     public boolean supprimerFilm(int id) {
-        return dao.delete(id);
+        try {
+            filmService.supprimerFilm(id);
+            return true;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
+            return false;
+        }
     }
+
     public boolean modifierFilm(Film film) {
-    	return dao.update(film);				
+        try {
+            filmService.modifierFilm(film);
+            return true;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
+            return false;
+        }
     }
 }

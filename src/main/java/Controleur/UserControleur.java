@@ -4,33 +4,41 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 
-import Modele.UserDAOPostgres;
 import Modele.UserModele;
 import View.FenetrePrincipale;
-import dao.UserDAO;
+import exceptions.MetierException;
+import service.UserService;
 
 public class UserControleur {
 
-    private UserDAO dao;
+    private final UserService userService;
 
-    public UserControleur() {
-        dao = new UserDAOPostgres();
+    // Injection par constructeur : le contrôleur reçoit son Service
+    public UserControleur(UserService userService) {
+        this.userService = userService;
     }
 
+    // "throws" conservé : la vue PaneauGestionnaire attrape encore cette exception
     public boolean ajouterGestionaire(HashMap<String, String> user) throws NoSuchAlgorithmException {
         UserModele gestionnaire = new UserModele(user.get("login"), user.get("mp"), false);
-        return dao.ajouter(gestionnaire);
+        try {
+            userService.ajouterUtilisateur(gestionnaire);
+            return true;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
+            return false;
+        }
     }
 
     public boolean verifierConnexion(HashMap<String, String> user) {
         UserModele gestionnaire = new UserModele(user.get("login"), user.get("mp"), false);
 
-        boolean connecte = dao.verfier(gestionnaire);
+        boolean connecte = userService.verifierIdentifiants(gestionnaire);
 
         if (connecte) {
             // Mot de passe correct : on retient qui est connecté (sert à l'audit)
             isAdmin(gestionnaire);
-            FenetrePrincipale.user_id = dao.getUserID(gestionnaire);
+            FenetrePrincipale.user_id = userService.identifiantDe(gestionnaire);
         } else {
             // Échec : personne n'est connecté
             FenetrePrincipale.user_id = 0;
@@ -40,20 +48,34 @@ public class UserControleur {
     }
 
     public void isAdmin(UserModele gestionnaire) {
-        // TODO Auto-generated method stub
-        FenetrePrincipale.isadmin = dao.isAdmin(gestionnaire);
+        FenetrePrincipale.isadmin = userService.estAdministrateur(gestionnaire);
     }
 
-    public boolean update(int id,HashMap<String,String> User){
-
+    public boolean update(int id, HashMap<String, String> User) {
         UserModele user = new UserModele(User.get("name"),
-                                      null,
-                                      Boolean.parseBoolean(User.get("admin")),
-                                      id);
-        return dao.update(user);
+                null,
+                Boolean.parseBoolean(User.get("admin")),
+                id);
+        try {
+            userService.modifierUtilisateur(user);
+            return true;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
+            return false;
+        }
+    }
+
+    public boolean supprimer(String login) {
+        try {
+            userService.supprimerUtilisateur(login);
+            return true;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
+            return false;
+        }
     }
 
     public List<UserModele> getAll() {
-        return dao.getAll();
+        return userService.listerUtilisateurs();
     }
 }

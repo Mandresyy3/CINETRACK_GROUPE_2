@@ -1,234 +1,147 @@
 package Controleur;
 
-import Modele.*;
-import exceptions.FilmIntrouvableException;
 import java.util.ArrayList;
 import java.util.List;
-import Modele.FilmDAOPostgres;
-import dao.FilmDAO;
-import dao.SalleDAO;
-import dao.SeanceDAO;
+
+import Modele.Film;
+import Modele.Salle;
+import Modele.Seance;
+import exceptions.MetierException;
+import service.FilmService;
+import service.SalleService;
+import service.SeanceService;
 
 /**
- * SeanceControleur — Couche de coordination entre FenetreSeance et les DAO.
- * Contient toute la logique de validation pour les séances.
- * Aucun code SQL ni composant Swing ne doit apparaître ici.
+ * SeanceControleur : coordination entre la vue des séances et les Services.
+ * Aucun SQL ni règle métier ici : le contrôleur lit la saisie, appelle le Service
+ * et traduit le résultat en message pour l'écran.
  */
 public class SeanceControleur {
 
-    // -------------------------------------------------------------------------
-    // Attributs
-    // -------------------------------------------------------------------------
+    private final SeanceService seanceService;
+    private final FilmService filmService;
+    private final SalleService salleService;
 
-    /** DAO pour accéder aux séances */
-    private SeanceDAO seanceDAO;
-
-    /** DAO pour accéder aux films */
-    private FilmDAO filmDAO;
-
-    private SalleDAO salleDAO = new SalleDAOPostgres();
-
-    // -------------------------------------------------------------------------
-    // Constructeur
-    // -------------------------------------------------------------------------
-
-    /**
-     * Crée le contrôleur et initialise les DAO.
-     */
-    public SeanceControleur() {
-        this.seanceDAO = new SeanceDAOPostgres();
-        this.filmDAO = new FilmDAOPostgres();
+    // Injection par constructeur : le contrôleur reçoit ses Services
+    public SeanceControleur(SeanceService seanceService, FilmService filmService, SalleService salleService) {
+        this.seanceService = seanceService;
+        this.filmService = filmService;
+        this.salleService = salleService;
     }
 
     public List<Salle> chargerSalles() {
         try {
-            return salleDAO.findAll();
+            return salleService.listerSalles();
         } catch (Exception e) {
             System.err.println("Erreur chargement salles : " + e.getMessage());
             return new ArrayList<>();
         }
     }
-    // -------------------------------------------------------------------------
-    // chargerSeances — Charge toutes les séances
-    // -------------------------------------------------------------------------
 
-    /**
-     * Retourne toutes les séances triées par date et heure.
-     *
-     * @return Liste de toutes les séances
-     */
-    public List<Seance> chargerSeances() {
-        try {
-            return seanceDAO.findAll();
-        } catch (Exception e) {
-            System.err.println("Erreur chargement séances : " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // chargerSeancesParDate — Filtre les séances par date
-    // -------------------------------------------------------------------------
-
-    /**
-     * Retourne les séances d'une date donnée.
-     * Correspond au bouton "Rechercher" dans FenetreSeance.
-     *
-     * @param date Date au format YYYY-MM-DD
-     * @return Liste des séances ou liste vide si date invalide
-     */
-    public List<Seance> chargerSeancesParDate(String date) {
-        try {
-            return seanceDAO.findByDate(date.trim());
-        } catch (Exception e) {
-            System.err.println("Erreur recherche par date : " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // chargerSeancesParFilm — Filtre les séances par film
-    // -------------------------------------------------------------------------
-
-    /**
-     * Retourne toutes les séances d'un film donné.
-     *
-     * @param titre Titre du film (ou une partie du titre)
-     * @return Liste des séances du film
-     */
-    public List<Seance> chargerSeancesParFilm(String titre) {
-        try {
-            return seanceDAO.findByTitre(titre);
-        } catch (FilmIntrouvableException e) {
-            System.err.println(e.getMessage());
-            return new ArrayList<>();
-        } catch (Exception e) {
-            System.err.println("Erreur recherche séances par film : " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // ajouterSeance — Valide et insère une nouvelle séance
-    // Logique issue du diagramme d'activité et du diagramme de séquence
-    // -------------------------------------------------------------------------
-
-    /**
-     * Valide les données saisies puis insère une nouvelle séance.
-     * Retourne "OK" si succès, sinon un message d'erreur.
-     *
-     * @param idFilm    Identifiant du film sélectionné
-     * @param idSalle   Identifiant de la salle sélectionnée
-     * @param date      Date de la séance (YYYY-MM-DD)
-     * @param heure     Heure de la séance (HH:MM)
-     * @param placesStr Nombre de places (String depuis JTextField)
-     * @return "OK" si succès, message d'erreur sinon
-     */
-    public String ajouterSeance(int idFilm, int idSalle, String date, String heure, String placesStr) {
-
-        // --- Validation des champs vides ---
-        if (date == null || date.trim().isEmpty() ||
-            heure == null || heure.trim().isEmpty()) {
-            return "Veuillez remplir tous les champs (date et heure obligatoires).";
-        }
-
-        // --- Conversion du nombre de places (dans le contrôleur, jamais dans la vue) ---
-        int placesDispo;
-        try {
-            placesDispo = Integer.parseInt(placesStr.trim());
-            if (placesDispo < 0) {
-                return "Le nombre de places ne peut pas être négatif.";
-            }
-        } catch (NumberFormatException e) {
-            return "Le nombre de places doit être un entier valide.";
-        }
-
-        // --- Construction de l'objet Seance sans id (constructeur pour INSERT) ---
-        Seance seance = new Seance(idFilm, idSalle, date.trim(), heure.trim(), placesDispo);
-
-        // --- Insertion en base ---
-        boolean succes = seanceDAO.insert(seance);
-
-        if (succes) {
-            return "OK";
-        } else {
-            // Salle déjà réservée ou autre erreur
-            return "Salle déjà réservée à ce créneau. Choisissez un autre horaire ou une autre salle.";
-        }
-    }
-
-public String modifierSeance(int idSeance, int idFilm, int idSalle, String date, String heure, String placesStr) {
-
-    // Validation des champs vides
-    if (date == null || date.trim().isEmpty() ||
-        heure == null || heure.trim().isEmpty()) {
-        return "Veuillez remplir tous les champs.";
-    }
-
-    // Conversion places
-    int placesDispo;
-    try {
-        placesDispo = Integer.parseInt(placesStr.trim());
-        if (placesDispo < 0) {
-            return "Le nombre de places ne peut pas être négatif.";
-        }
-    } catch (NumberFormatException e) {
-        return "Le nombre de places doit être un entier valide.";
-    }
-
-    // Construction de l'objet avec l'id pour le WHERE
-    Seance seance = new Seance(idSeance, idFilm, idSalle, date.trim(), heure.trim(), placesDispo);
-
-    boolean succes = seanceDAO.update(seance);
-
-    if (succes) {
-        return "OK";
-    } else {
-        return "Erreur lors de la modification.";
-    }
-}    
-    // -------------------------------------------------------------------------
-    // annulerSeance — Supprime une séance existante
-    // -------------------------------------------------------------------------
-
-    /**
-     * Supprime une séance par son identifiant.
-     *
-     * @param idSeance Identifiant de la séance à supprimer
-     * @return true si suppression réussie
-     */
-    public boolean annulerSeance(int idSeance) {
-        try {
-            return seanceDAO.delete(idSeance);
-        } catch (Exception e) {
-            System.err.println("Erreur suppression séance : " + e.getMessage());
-            return false;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // chargerFilms — Liste des films pour les JComboBox
-    // -------------------------------------------------------------------------
-
-    /**
-     * Retourne tous les films pour alimenter les listes déroulantes.
-     *
-     * @return Liste de tous les films
-     */
     public List<Film> chargerFilms() {
         try {
-            return filmDAO.findAll();
+            return filmService.listerFilms();
         } catch (Exception e) {
             System.err.println("Erreur chargement films : " + e.getMessage());
             return new ArrayList<>();
         }
     }
 
-    public Seance prochaineSeance(){
-        return seanceDAO.prochaineSeance();
-    }
-    public Seance Meilleurnote(){
-        return seanceDAO.Meilleurnote();
+    public List<Seance> chargerSeances() {
+        try {
+            return seanceService.listerSeances();
+        } catch (Exception e) {
+            System.err.println("Erreur chargement séances : " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 
+    /**
+     * Séances d'une date donnée (format YYYY-MM-DD).
+     */
+    public List<Seance> chargerSeancesParDate(String date) {
+        try {
+            return seanceService.rechercherParDate(date);
+        } catch (Exception e) {
+            System.err.println("Erreur recherche par date : " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Séances dont le film contient le titre saisi.
+     */
+    public List<Seance> chargerSeancesParFilm(String titre) {
+        try {
+            return seanceService.rechercherParTitre(titre);
+        } catch (Exception e) {
+            System.err.println("Erreur recherche séances par film : " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Ajoute une séance. Retourne "OK" si succès, sinon un message d'erreur.
+     */
+    public String ajouterSeance(int idFilm, int idSalle, String date, String heure, String placesStr) {
+        int placesDispo;
+        try {
+            placesDispo = Integer.parseInt(placesStr.trim());
+        } catch (NumberFormatException e) {
+            return "Le nombre de places doit être un entier valide.";
+        }
+
+        Seance seance = new Seance(idFilm, idSalle, nettoyer(date), nettoyer(heure), placesDispo);
+
+        try {
+            seanceService.ajouterSeance(seance);
+            return "OK";
+        } catch (MetierException me) {
+            return me.getMessage();
+        }
+    }
+
+    /**
+     * Modifie une séance. Retourne "OK" si succès, sinon un message d'erreur.
+     */
+    public String modifierSeance(int idSeance, int idFilm, int idSalle, String date, String heure, String placesStr) {
+        int placesDispo;
+        try {
+            placesDispo = Integer.parseInt(placesStr.trim());
+        } catch (NumberFormatException e) {
+            return "Le nombre de places doit être un entier valide.";
+        }
+
+        Seance seance = new Seance(idSeance, idFilm, idSalle, nettoyer(date), nettoyer(heure), placesDispo);
+
+        try {
+            seanceService.modifierSeance(seance);
+            return "OK";
+        } catch (MetierException me) {
+            return me.getMessage();
+        }
+    }
+
+    public boolean annulerSeance(int idSeance) {
+        try {
+            seanceService.annulerSeance(idSeance);
+            return true;
+        } catch (MetierException me) {
+            System.err.println(me.getMessage());
+            return false;
+        }
+    }
+
+    public Seance prochaineSeance() {
+        return seanceService.prochaineSeance();
+    }
+
+    public Seance Meilleurnote() {
+        return seanceService.meilleureNote();
+    }
+
+    // Nettoyage de la saisie (espaces), pas une règle métier
+    private String nettoyer(String texte) {
+        return texte == null ? null : texte.trim();
+    }
 }

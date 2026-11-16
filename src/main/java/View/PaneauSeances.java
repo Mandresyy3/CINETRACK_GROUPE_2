@@ -33,10 +33,11 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import util.GeneralFont;
+import main.Main;
 
 public class PaneauSeances extends JPanel {
 
-    private SeanceControleur controleur = new SeanceControleur();
+    private SeanceControleur controleur = Main.seanceControleur();
 
     private final String LIST_SEANCE = "liste des seances";
     private final String AJOUTER_SEANCE = "ajouter seance";

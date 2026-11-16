@@ -1,7 +1,7 @@
 package View;
 
 import javax.swing.*;
-
+import main.Main;
 import Controleur.SeanceControleur;
 import Modele.Seance;
 import View.Admin.PaneauAdmin;
@@ -98,7 +98,7 @@ public class FenetrePrincipale extends JFrame {
         panelInfo.setBorder(BorderFactory.createEmptyBorder(30, 60, 60, 60));
         panelInfo.setBackground(UITheme.BG_MAIN);
 
-        SeanceControleur sc = new SeanceControleur();
+        SeanceControleur sc = Main.seanceControleur();
 
         // Carte : prochaine seance
         Seance prochaineSeance = sc.prochaineSeance();
