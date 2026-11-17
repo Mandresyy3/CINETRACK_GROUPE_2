@@ -7,8 +7,9 @@ import View.FenetrePrincipale;
 import Connexion.DataBaseConn;
 import exceptions.FilmIntrouvableException;
 import exceptions.NoteInvalideException;
+import Modele.dao.FilmDao;
 
-public class FilmDAO extends DataBaseConn{
+public class FilmDAO extends DataBaseConn implements FilmDao {
 
     // -------------------------------------------------------------------------
     // findAll
