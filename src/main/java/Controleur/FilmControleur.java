@@ -5,58 +5,58 @@ import java.util.List;
 
 import Modele.Film;
 import Modele.FilmDAO;
-import exceptions.NoteInvalideException;
+import service.FilmService;
 
 public class FilmControleur {
-    FilmDAO dao;
+    private final FilmService service;
 
     public FilmControleur() {
-        dao = new FilmDAO();
+        this(new FilmService(new FilmDAO()));
+    }
+
+    public FilmControleur(FilmService service) {
+        this.service = java.util.Objects.requireNonNull(service, "Le service de films est obligatoire.");
     }
 
     public boolean ajouter(HashMap<String, String> films) {
         try {
-            Double note = Double.parseDouble(films.get("Note"));
-            if (note >= 0.0 && note <= 10) {
-                return dao.ajouter(creeFilms(films));
-            } else {
-                throw new NoteInvalideException(0);
-            }
-        } catch (NoteInvalideException nie) {
-            System.out.println(nie.getLocalizedMessage() + " test 2");
+            return service.ajouter(creeFilms(films));
+        } catch (IllegalArgumentException nie) {
             return false;
         }
     }
 
     private Film creeFilms(HashMap<String, String> films) {
-        try {
-            return new Film(films.get("Titre"),
-                    films.get("Genre"),
-                    Integer.parseInt(films.get("Durée (minutes)")),
-                    Double.parseDouble(films.get("Note")),
-                    films.get("Synopsys"));
-        } catch (Exception e) {
-            System.err.println("messgae " + e.getCause() + "    " + e.getLocalizedMessage());
-            ;
-        }
-        return new Film();
+        return new Film(films.get("Titre"),
+                films.get("Genre"),
+                Integer.parseInt(films.get("Durée (minutes)")),
+                Double.parseDouble(films.get("Note")),
+                films.get("Synopsis") != null ? films.get("Synopsis") : films.get("Synopsys"));
     }
 
     public List<Film> chercherParTitre(String titre) {
-        return dao.rechercherParTitre(titre);
+        return service.rechercherParTitre(titre);
     }
 
     public List<Film> chercherParGenre(String genre) {
-        return dao.rechercherParGenre(genre);
+        return service.rechercherParGenre(genre);
     }
 
     public List<Film> recupereFilm() {
-        return dao.findAll();
+        return service.tousLesFilms();
     }
     public boolean supprimerFilm(int id) {
-        return dao.delete(id);
+        try {
+            return service.supprimer(id);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
     public boolean modifierFilm(Film film) {
-    	return dao.update(film);				
+        try {
+            return service.modifier(film);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 }
