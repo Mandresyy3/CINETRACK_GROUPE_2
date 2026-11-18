@@ -5,11 +5,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import dao.AuditLogDAO;
 
 import Connexion.DataBaseConn;
 
-public class AuditLogDAO extends DataBaseConn {
+public class AuditLogDAOPostgres extends DataBaseConn implements AuditLogDAO {
 
+    @Override
     public List<AuditLogModele> getAll() {
 
         String sql = "SELECT a.id, a.table_name, a.record_id, a.action, "

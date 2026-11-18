@@ -21,9 +21,11 @@ import java.awt.event.MouseEvent;
 
 import Controleur.FilmControleur;
 
+import main.Main;
+
 public class PaneauFilms extends AbstractPanel {
 
-    private FilmControleur controleur = new FilmControleur();
+    private FilmControleur controleur = Main.filmControleur();
 
     private final String LIST_FILM = "listes des films";
     private final String AJOUTER_FILM = "Ajout";

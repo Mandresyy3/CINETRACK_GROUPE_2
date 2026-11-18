@@ -2,7 +2,7 @@ package exceptions;
  
 /**
  * Exception lancée quand une note est hors de l'intervalle [0, 10].
- * Lancée dans Film.setNote() et FilmDAO.insert() / update().
+ * Lancée dans Film.setNote() et FilmDAOPostgres.insert() / update().
  */
 public class NoteInvalideException extends RuntimeException {
  

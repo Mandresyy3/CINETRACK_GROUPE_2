@@ -19,7 +19,12 @@ public abstract class DataBaseConn {
     }
 
     public boolean changeUserID(Connection c, int id) {
-        String sql = "SELECT set_config('app.current_user_id', ?, false)";
+
+        if (id <= 0) {
+            return false;
+        }
+            String sql = "SELECT set_config('app.current_user_id', ?, false)";
+
 
         try (PreparedStatement pst = c.prepareStatement(sql)) {
 

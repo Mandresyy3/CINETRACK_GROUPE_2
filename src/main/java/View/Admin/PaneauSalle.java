@@ -9,10 +9,11 @@ import java.util.List;
 import Controleur.SalleControler;
 import Modele.Salle;
 import View.*;
+import main.Main;
 
 public class PaneauSalle extends AbstractPanel {
 
-    private SalleControler controleur = new SalleControler();
+    private SalleControler controleur = Main.salleControleur();
 
     private DefaultTableModel model;
     private JTable table;

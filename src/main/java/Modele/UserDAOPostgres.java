@@ -5,6 +5,7 @@ import java.util.List;
 
 import Connexion.DataBaseConn;
 import View.FenetrePrincipale;
+import dao.UserDAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,12 +14,13 @@ import java.sql.SQLException;
 
 import util.HashUtil;
 
-public class UserDAO extends DataBaseConn {
+public class UserDAOPostgres extends DataBaseConn implements UserDAO {
     // objet pour hasher les mots de passe
 
-    public UserDAO() {
+    public UserDAOPostgres() {
     }
 
+    @Override
     public List<UserModele> getAll() {
         String sql = "SELECT * FROM utilisateur";
 
@@ -39,11 +41,13 @@ public class UserDAO extends DataBaseConn {
 
             return users;
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println("Erreur chargement utilisateurs : " + e.getMessage());
         }
-        return null;
+        return new ArrayList<>();
+
     }
 
+    @Override
     public boolean ajouter(UserModele user) {
 
         String sql = "INSERT INTO utilisateur (login,motDePasse,admin) VALUES (?,?,?)";
@@ -58,9 +62,13 @@ public class UserDAO extends DataBaseConn {
             stmt.setString(1, user.getUserName());
             stmt.setString(2, hashedPSW);
             stmt.setBoolean(3, user.isAdmin());
-            return stmt.execute();
+            return stmt.executeUpdate() > 0;
         } catch (SQLException sqle) {
-            System.out.println("Message " + sqle.getMessage());
+            if ("23505".equals(sqle.getSQLState())) {
+                System.err.println("Ce login existe déjà : " + user.getUserName());
+            } else {
+                System.err.println("Erreur SQL : " + sqle.getMessage());
+            }
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -68,6 +76,7 @@ public class UserDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean verfier(UserModele user) {
         String sql = "SELECT motDePasse FROM utilisateur WHERE login = ?";
 
@@ -94,6 +103,7 @@ public class UserDAO extends DataBaseConn {
 
     }
 
+    @Override
     public boolean suprimer(String userName) {
         String sql = "DELETE FROM utilisateur WHERE login = ?";
 
@@ -102,13 +112,14 @@ public class UserDAO extends DataBaseConn {
             pstmt.setString(1, userName);
             super.changeUserID(c , FenetrePrincipale.user_id);   // <-- ajouté
 
-            return pstmt.execute();
+            return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println("Erreur suppression utilisateur : " + e.getMessage());
         }
         return false;
     }
 
+    @Override
     public boolean isAdmin(UserModele user) {
         String sql = "SELECT admin FROM utilisateur WHERE login = ?";
 
@@ -128,6 +139,7 @@ public class UserDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean update(UserModele user) {
 
         String sql = "UPDATE utilisateur SET login = ?, admin = ? WHERE id = ?";
@@ -151,6 +163,7 @@ public class UserDAO extends DataBaseConn {
         }
     }
 
+    @Override
     public int getUserID(UserModele gestionnaire) {
         String sql = "SELECT id FROM utilisateur WHERE login = ?";
 
