@@ -1,10 +1,9 @@
 # CineTrack
 
-Application de gestion de cinéma (films, salles, séances, utilisateurs) en **Java** avec une base **PostgreSQL**.
+Application de gestion de cinéma (films, salles, séances, utilisateurs) en **Java / JavaFX** avec une base **PostgreSQL**.
 Projet fil rouge du BTS SIO SLAM, MCCI Business School.
 
-L'interface actuelle est en **Swing** (la migration vers JavaFX/FXML est prévue à l'étape 2 du projet).
-Architecture : MVC en couches (Contrôleur, Service, DAO), avec des **interfaces** pour les DAO et une
+Architecture : **FXML → contrôleur JavaFX → Service → DAO (interface) → DAO PostgreSQL**, avec une
 **injection de dépendances** par constructeur (voir la section 4).
 
 ---
@@ -17,6 +16,7 @@ Architecture : MVC en couches (Contrôleur, Service, DAO), avec des **interfaces
 | PostgreSQL + pgAdmin | 14 ou plus | Retenir le mot de passe de l'utilisateur `postgres` |
 | Git | récent | |
 | IntelliJ IDEA | récent | Maven est déjà intégré à l'IDE |
+| Scene Builder | facultatif | Pour dessiner les écrans FXML à la souris (voir la section 6) |
 
 ---
 
@@ -58,21 +58,15 @@ Chaque membre de l'équipe a son propre `.env`.
 
 ## 3. Lancer l'application
 
-### Avec IntelliJ (recommandé)
-
-1. Ouvrir le dossier du projet (`File > Open`, choisir le dossier qui contient `pom.xml`).
+1. Ouvrir le dossier du projet dans IntelliJ (`File > Open`, choisir le dossier qui contient `pom.xml`).
 2. Attendre que Maven télécharge les dépendances (barre de progression en bas).
 3. Vérifier que le SDK du projet est le **JDK 21** (`File > Project Structure > Project`, Language level 21).
-4. Clic droit sur `src/main/java/main/Main.java`, puis **Run 'Main.main()'**.
+4. Clic droit sur `src/main/java/main/Launcher.java`, puis **Run 'Launcher.main()'**.
 5. Vérifier que le **Working directory** (`Run > Edit Configurations`) est la racine du projet, là où se trouve le `.env`.
 
-### En ligne de commande
-
-```bash
-mvn compile exec:java -Dexec.mainClass="main.Main"
-```
-
-La commande doit être lancée depuis la racine du projet, pour que le `.env` soit trouvé.
+> On lance **`Launcher`** et non `MainApp` : `Launcher` n'hérite pas de `Application`, ce qui évite l'erreur
+> « JavaFX runtime components are missing ». L'avertissement « Unsupported JavaFX configuration » dans la console est normal.
+> `Main` est l'ancien point d'entrée Swing : il n'est plus utilisé pour lancer l'application.
 
 ### Connexion
 
@@ -81,6 +75,17 @@ Compte administrateur créé par le script SQL (**réservé au développement**)
 | Login | Mot de passe |
 |---|---|
 | `admin` | `admin123` |
+
+### Écrans selon le rôle
+
+| Onglet | Administrateur | Autre compte |
+|---|---|---|
+| Accueil (prochaine séance, film le mieux noté) | oui | oui |
+| Films | oui | oui |
+| Séances | oui | oui |
+| Salles | oui | non |
+| Utilisateurs | oui | non |
+| Historique des modifications | oui | non |
 
 ---
 
@@ -91,27 +96,28 @@ CINETRACK_GROUPE_2/
 ├── db/
 │   └── cinetrack.sql          Script de création de la base (tables, clés étrangères, audit)
 ├── src/main/java/
-│   ├── main/                  Point d'entrée (Main, qui assemble aussi les objets) et test manuel (TestAudit)
-│   ├── Connexion/             DataBaseConn : connexion JDBC et utilisateur courant pour l'audit
-│   ├── Modele/                Classes métier (Film, Salle, Seance, ...) et implémentations DAO (XxxDAOPostgres)
-│   ├── dao/                   Interfaces DAO (FilmDAO, SalleDAO, SeanceDAO, UserDAO, AuditLogDAO)
+│   ├── main/                  Launcher et MainApp (démarrage JavaFX), Main (assemblage des objets), TestAudit
+│   ├── controller/            Contrôleurs JavaFX (un par écran) : ils reçoivent leur Service par le constructeur
 │   ├── service/               Services (règles métier) : ils reçoivent leur DAO par le constructeur
-│   ├── Controleur/            Contrôleurs : ils reçoivent leur Service par le constructeur
-│   ├── View/                  Interface Swing (View/Admin : écrans administrateur)
+│   ├── dao/                   Interfaces DAO (FilmDAO, SalleDAO, SeanceDAO, UserDAO, AuditLogDAO)
+│   ├── Modele/                Classes métier (Film, Salle, Seance, ...) et implémentations DAO (XxxDAOPostgres)
+│   ├── Connexion/             DataBaseConn : connexion JDBC et utilisateur courant pour l'audit
 │   ├── exceptions/            Exceptions métier (MetierException, AccesDonneesException, ...)
-│   └── util/                  Outils (HashUtil, EnvLoader)
+│   ├── util/                  Outils (HashUtil, EnvLoader)
+│   ├── Controleur/, View/     Ancienne interface Swing (conservée, non utilisée au démarrage)
+├── src/main/resources/
+│   ├── views/                 Écrans FXML (un fichier par écran, plus main-view.fxml qui les réunit en onglets)
+│   └── css/style.css          Feuille de style de toute l'application
 ├── pom.xml                    Dépendances Maven (driver PostgreSQL, JavaFX), Java 21
 ├── .env.example               Modèle de configuration (copier en .env)
 └── .gitignore
 ```
 
-Chaîne d'appel actuelle :
-**View → Controleur → Service → DAO (interface dans `dao/`) → DAOPostgres (dans `Modele/`) → PostgreSQL**.
-
 ### Rôle de chaque couche
 
-- **Contrôleur** : lit la saisie, appelle le Service, traduit une exception en message pour l'écran. Aucun SQL, aucune règle métier.
-- **Service** : contient les règles métier (par exemple : note entre 0 et 10, deux salles ne portent pas le même nom).
+- **FXML** : décrit l'apparence d'un écran (aucune logique). **CSS** : couleurs, polices, survol.
+- **Contrôleur JavaFX** : lit la saisie, appelle le Service, affiche un message en cas d'erreur. Aucun SQL, aucune règle métier.
+- **Service** : contient les règles métier (note entre 0 et 10, nom de salle unique, capacité de 1 à 200, ...).
   En cas de refus ou d'échec, il lève une exception (`MetierException`, `AccesDonneesException`) au lieu de renvoyer `false`.
 - **DAO** : le seul endroit où il y a du SQL (JDBC, requêtes préparées).
 
@@ -119,15 +125,21 @@ Chaîne d'appel actuelle :
 
 - L'**interface** décrit ce que le DAO sait faire, sans code SQL : `dao/FilmDAO.java`.
 - L'**implémentation** contient le SQL : `Modele/FilmDAOPostgres.java`, qui fait `implements FilmDAO`.
-- Le code qui utilise un DAO déclare le **type de l'interface** : `FilmDAO dao = new FilmDAOPostgres();`.
 
 ### Injection de dépendances
 
 Une classe ne crée pas ses dépendances avec `new` : elle les **reçoit par son constructeur**
-(un contrôleur reçoit son Service, un Service reçoit son DAO).
-L'assemblage est fait à **un seul endroit**, dans `Main` : `filmControleur()`, `salleControleur()`,
-`seanceControleur()` et `userControleur()` fabriquent la chaîne DAO, Service, Contrôleur.
-Les vues demandent leur contrôleur à `Main` (par exemple `Main.filmControleur()`).
+(un contrôleur reçoit son Service, un Service reçoit son DAO). L'assemblage est fait à **un seul endroit**, dans `Main` :
+`creerControleur(Class<?> type)` fabrique chaque contrôleur avec ses Services et ses DAO.
+`MainApp` la branche sur `FXMLLoader` avec `loader.setControllerFactory(Main::creerControleur)`.
+
+### Ajouter un écran
+
+1. Créer `src/main/resources/views/xxx-view.fxml` avec `fx:controller="controller.XxxController"`.
+2. Créer `controller/XxxController.java` : le constructeur reçoit le Service ; les composants du FXML sont des champs `@FXML` de même nom que leur `fx:id`.
+3. Ajouter, dans `Main`, une ligne `if (type == XxxController.class) return new XxxController(...)` dans `creerControleur`.
+4. Ajouter un onglet avec `<fx:include source="xxx-view.fxml"/>` dans `main-view.fxml`.
+5. Pour réserver l'onglet à l'administrateur : lui donner un `fx:id` et l'ajouter à la liste des onglets retirés dans `MainController`.
 
 ---
 
@@ -152,7 +164,8 @@ Règles de la base :
 Des triggers PostgreSQL remplissent `audit_log` à chaque insertion, modification ou suppression.
 Pour savoir **qui** agit, les DAO appellent `changeUserID(connexion, id)` **avant** l'écriture,
 sur la **même connexion** : cela définit `app.current_user_id`, lu par le trigger.
-Si personne n'est connecté, `user_id` vaut `NULL`. Le hash du mot de passe n'est jamais enregistré dans l'historique.
+L'identifiant vient de la connexion (écran de connexion). Si personne n'est connecté, `user_id` vaut `NULL`.
+Le hash du mot de passe n'est jamais enregistré dans l'historique.
 
 ### Tester l'audit
 
@@ -162,7 +175,21 @@ Le lancer avec un clic droit, **Run 'TestAudit.main()'**. Résultat attendu : to
 
 ---
 
-## 6. Travailler en équipe avec Git
+## 6. Modifier un écran avec Scene Builder (facultatif)
+
+Clic droit sur un fichier FXML, puis **Open in SceneBuilder** (le chemin du **`SceneBuilder.exe`**, et non de l'installeur `.msi`,
+se règle dans `File > Settings > Languages & Frameworks > JavaFX`). Trois règles pour ne rien casser :
+
+- ne pas changer les **`fx:id`** (le contrôleur les retrouve par leur nom) ;
+- ne pas changer les **actions** des boutons (`onAjouter`, `onModifier`, ...) ;
+- ne pas vider le **contrôleur** du document (`fx:controller`).
+
+La feuille de style est attachée dans `MainApp` (pas dans le FXML) : Scene Builder n'affiche pas le style, sauf si on ajoute
+`css/style.css` dans `Preview > Scene Style Sheets`.
+
+---
+
+## 7. Travailler en équipe avec Git
 
 Branches du projet : `main` (version finale), `dev` (version de travail commune), `feature` (développement).
 
@@ -189,7 +216,7 @@ Fichiers qui ne doivent **jamais** être envoyés : `.env`, `.idea/`, `target/`.
 
 ---
 
-## 7. Problèmes fréquents
+## 8. Problèmes fréquents
 
 | Message ou symptôme | Cause et solution |
 |---|---|
@@ -199,30 +226,37 @@ Fichiers qui ne doivent **jamais** être envoyés : `.env`, `.idea/`, `target/`.
 | `Connection refused` | PostgreSQL n'est pas démarré, ou le port n'est pas 5432. |
 | `database "cinetrack" does not exist` | La base n'a pas été créée (voir 2.2). |
 | `relation "..." does not exist` | Le script `db/cinetrack.sql` n'a pas été exécuté sur cette base. |
+| `JavaFX runtime components are missing` | Lancer `Launcher` et non `MainApp`. |
+| `LoadException` au démarrage | Un `fx:id` du FXML ne correspond pas à un champ `@FXML`, une action n'existe pas dans le contrôleur, ou le contrôleur n'est pas dans `Main.creerControleur`. |
 | `invalid source release: 21` ou `release version 21 not supported` | Le JDK utilisé n'est pas le 21 (voir `File > Project Structure`). |
 | `UnsupportedClassVersionError ... class file version 69.0` | Des fichiers ont été compilés avec un autre JDK. Faire `Build > Rebuild Project`. |
-| Caractères accentués illisibles | Définir l'encodage en UTF-8 (`pom.xml` le fait déjà pour Maven). |
+| Modification d'un FXML ou du CSS sans effet | Fermer l'application, faire `Build > Rebuild Project`, relancer. |
 
 ---
 
-## 8. Avancement de l'étape 2 (échéance du 17/11/2026)
+## 9. Avancement
+
+Étape 2 (échéance du 17/11/2026) :
 
 - [x] Model
 - [x] DAO Interface (`dao/`)
 - [x] DAO Impl JDBC/PostgreSQL (`XxxDAOPostgres`)
 - [x] Connexion à PostgreSQL (`.env` et `DataBaseConn`)
-- [x] JDK 21 et dépendances JavaFX dans le `pom.xml`
 - [x] Service
-- [x] Injection de dépendances (assemblage dans le `Main`)
-- [ ] FXML, CSS et contrôleurs JavaFX
+- [x] Injection de dépendances (assemblage dans `Main`)
+- [x] Contrôleurs JavaFX et FXML (connexion, accueil, films, salles, séances, utilisateurs, historique)
+- [x] CSS
+
+Étape 3 (échéance du 24/11/2026) : CRUD films et salles (fait), recherche multicritère (à compléter sur l'écran des films),
+validation des données et gestion des exceptions (en partie faits).
 
 ---
 
-## 9. Limites connues (à traiter)
+## 10. Limites connues (à traiter)
 
-- Seul `AuditLogControleur` appelle encore directement son DAO (pas de service d'audit).
-- Les vues Swing demandent leur contrôleur à `Main` : assemblage provisoire, à remplacer par celui de JavaFX.
+- Les droits sont limités à deux rôles (administrateur ou non) : un compte non administrateur peut encore modifier les films et les séances. Les rôles administrateur et caissier avec droits distincts sont prévus à l'étape 6.
 - Les mots de passe sont hachés en **SHA-256 sans sel** : à remplacer par bcrypt (étape 6).
-- Le contrôle d'accès administrateur est surtout fait dans l'interface (menus masqués) : il doit aussi être vérifié côté code, avec refus par défaut.
+- Le contrôleur de connexion retient l'utilisateur dans des champs statiques de l'ancienne classe Swing `View.FenetrePrincipale` (lus par `DataBaseConn` pour l'audit) : à remplacer par une classe de session dédiée.
+- L'ancienne interface Swing (`View/`, `Controleur/`) est conservée mais n'est plus utilisée.
 - L'application se connecte avec le compte `postgres` (tous les droits) : prévoir un compte applicatif aux droits minimaux.
 - Aucun test automatisé JUnit pour l'instant.

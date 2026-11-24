@@ -129,7 +129,7 @@ public class FilmDAOPostgres extends DataBaseConn implements FilmDAO {
             throw new NoteInvalideException(film.getNote());
         }
 
-        String sql = "UPDATE films SET titre = ?, genre = ?, duree = ?, note = ?, synopsis = ? WHERE idFilm = ?";
+        String sql = "UPDATE films SET titre = ?, genre = ?, duree = ?, note = ?, synopsis = ? WHERE id = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
