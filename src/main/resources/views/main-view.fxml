@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+
+<TabPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+         fx:id="tabPane" fx:controller="controller.MainController"
+         side="LEFT" tabMinWidth="45" tabMinHeight="140"
+         tabClosingPolicy="UNAVAILABLE" prefWidth="1000" prefHeight="650">
+    <tabs>
+        <Tab>
+            <graphic><Label text="Accueil" styleClass="onglet"/></graphic>
+            <content>
+                <fx:include source="accueil-view.fxml"/>
+            </content>
+        </Tab>
+        <Tab>
+            <graphic><Label text="Films" styleClass="onglet"/></graphic>
+            <content>
+                <fx:include source="film-view.fxml"/>
+            </content>
+        </Tab>
+        <Tab fx:id="tabSalles">
+            <graphic><Label text="Salles" styleClass="onglet"/></graphic>
+            <content>
+                <fx:include source="salle-view.fxml"/>
+            </content>
+        </Tab>
+        <Tab>
+            <graphic><Label text="Séances" styleClass="onglet"/></graphic>
+            <content>
+                <fx:include source="seance-view.fxml"/>
+            </content>
+        </Tab>
+        <Tab fx:id="tabUtilisateurs">
+            <graphic><Label text="Utilisateurs" styleClass="onglet"/></graphic>
+            <content>
+                <fx:include source="utilisateur-view.fxml"/>
+            </content>
+        </Tab>
+        <Tab fx:id="tabHistorique">
+            <graphic><Label text="Historique" styleClass="onglet"/></graphic>
+            <content>
+                <fx:include source="audit-view.fxml"/>
+            </content>
+        </Tab>
+    </tabs>
+</TabPane>

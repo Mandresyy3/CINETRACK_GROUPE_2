@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="560" prefWidth="760" spacing="10" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.SeanceController">
+
+    <padding>
+        <Insets bottom="15" left="15" right="15" top="15" />
+    </padding>
+
+    <Label styleClass="titre" text="CineTrack — Gestion des séances" />
+
+    <GridPane hgap="10" vgap="10">
+        <Label text="Film" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <ComboBox fx:id="comboFilm" prefWidth="220" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        <Label text="Salle" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+        <ComboBox fx:id="comboSalle" prefWidth="180" GridPane.columnIndex="3" GridPane.rowIndex="0" />
+
+        <Label text="Date" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+        <DatePicker fx:id="dateSeance" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <Label text="Heure" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+        <TextField fx:id="txtHeure" promptText="HH:mm" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+        <Label text="Places" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+        <TextField fx:id="txtPlaces" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints />
+         <RowConstraints />
+         <RowConstraints />
+      </rowConstraints>
+    </GridPane>
+
+    <HBox spacing="10">
+        <Button onAction="#onAjouter" text="Ajouter" />
+        <Button onAction="#onModifier" text="Modifier" />
+        <Button onAction="#onSupprimer" styleClass="btn-supprimer" text="Supprimer" />
+        <Button onAction="#onActualiser" text="Actualiser" />
+    </HBox>
+
+    <HBox spacing="10">
+        <Label text="Rechercher :" />
+        <TextField fx:id="txtRechercheFilm" promptText="Titre du film" />
+        <Button onAction="#onRechercherFilm" text="Par film" />
+        <DatePicker fx:id="dateRecherche" />
+        <Button onAction="#onRechercherDate" text="Par date" />
+    </HBox>
+
+    <TableView fx:id="tableSeances" prefHeight="243.0" prefWidth="694.0" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" prefWidth="50" text="ID" />
+            <TableColumn fx:id="colFilm" prefWidth="240" text="Film" />
+            <TableColumn fx:id="colSalle" prefWidth="130" text="Salle" />
+            <TableColumn fx:id="colDate" prefWidth="100" text="Date" />
+            <TableColumn fx:id="colHeure" prefWidth="90" text="Heure" />
+            <TableColumn fx:id="colPlaces" prefWidth="70" text="Places" />
+        </columns>
+    </TableView>
+
+    <Label fx:id="lblMessage" />
+</VBox>

@@ -2,7 +2,7 @@ package exceptions;
  
 /**
  * Exception lancée quand un film est introuvable en base de données.
- * Lancée dans FilmDAO.findById() si aucun film ne correspond à l'id.
+ * Lancée dans FilmDAOPostgres.findById() si aucun film ne correspond à l'id.
  */
 public class FilmIntrouvableException extends RuntimeException {
  

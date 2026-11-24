@@ -3,11 +3,13 @@ package Modele;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import dao.SalleDAO;
 import Connexion.DataBaseConn;
 import View.FenetrePrincipale;
 
-public class SalleDAO extends DataBaseConn {
+public class SalleDAOPostgres extends DataBaseConn implements SalleDAO {
 
+    @Override
     public List<Salle> findAll() {
         List<Salle> liste = new ArrayList<>();
         String sql = "SELECT id, nom, capacite, equipment FROM salles";
@@ -39,6 +41,7 @@ public class SalleDAO extends DataBaseConn {
         return liste;
     }
 
+    @Override
     public boolean ajouter(Salle salle) {
         String sql = "INSERT INTO salles (nom, capacite, equipment) VALUES (?, ?, ?)";
 
@@ -61,6 +64,7 @@ public class SalleDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean modifier(Salle salle) {
         String sql = "UPDATE salles SET nom = ?, capacite = ?, equipment = ? WHERE id = ?";
 
@@ -85,6 +89,7 @@ public class SalleDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean supprimer(int id) {
         String sql = "DELETE FROM salles WHERE id = ?";
 
@@ -101,6 +106,7 @@ public class SalleDAO extends DataBaseConn {
         return false;
     }
 
+    @Override
     public boolean existeDeja(String nom, int idActuel) {
         String sql = "SELECT COUNT(*) FROM salles WHERE LOWER(nom) = LOWER(?) AND id != ?";
 

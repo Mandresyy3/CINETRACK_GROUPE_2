@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.ConnexionController"
+      alignment="CENTER" spacing="12" prefWidth="380" prefHeight="320">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="CineTrack" styleClass="titre"/>
+    <Label text="Connexion"/>
+
+    <TextField fx:id="txtLogin" promptText="Nom d'utilisateur" maxWidth="260"/>
+    <PasswordField fx:id="txtMotDePasse" promptText="Mot de passe" maxWidth="260"
+                   onAction="#onConnexion"/>
+
+    <Button text="Se connecter" defaultButton="true" onAction="#onConnexion"/>
+
+    <Label fx:id="lblErreur"/>
+</VBox>

@@ -2,7 +2,7 @@ package exceptions;
 
 /**
  * Exception lancée quand une salle est déjà réservée à une date/heure donnée.
- * Lancée dans SeanceDAO.insert() si la contrainte UNIQUE est violée (SQLState 23505).
+ * Lancée dans SeanceDAOPostgres.insert() si la contrainte UNIQUE est violée (SQLState 23505).
  */
 public class SalleIndisponibleException extends RuntimeException {
 

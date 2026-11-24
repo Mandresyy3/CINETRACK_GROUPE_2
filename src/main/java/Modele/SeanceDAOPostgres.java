@@ -3,15 +3,17 @@ package Modele;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import dao.SeanceDAO;
 
 import Connexion.DataBaseConn;
 import View.FenetrePrincipale;
 
-public class SeanceDAO extends DataBaseConn {
+public class SeanceDAOPostgres extends DataBaseConn implements SeanceDAO {
 
     // -------------------------------------------------------------------------
     // findAll
     // -------------------------------------------------------------------------
+    @Override
     public List<Seance> findAll() {
         List<Seance> liste = new ArrayList<>();
         String sql = "SELECT * FROM seances s " +
@@ -41,6 +43,7 @@ public class SeanceDAO extends DataBaseConn {
     // -------------------------------------------------------------------------
     // findByFilm
     // -------------------------------------------------------------------------
+    @Override
     public List<Seance> findByTitre(String titre) {
     List<Seance> liste = new ArrayList<>();
 
@@ -77,6 +80,7 @@ public class SeanceDAO extends DataBaseConn {
     // -------------------------------------------------------------------------
     // findByDate
     // -------------------------------------------------------------------------
+    @Override
     public List<Seance> findByDate(String date) {
         List<Seance> liste = new ArrayList<>();
         String sql = "SELECT * FROM seances s " +
@@ -110,6 +114,7 @@ public class SeanceDAO extends DataBaseConn {
     // -------------------------------------------------------------------------
     // insert
     // -------------------------------------------------------------------------
+    @Override
     public boolean insert(Seance s) {
         String sql = "INSERT INTO seances (idfilm, idsalle, dateseance, heure, placesdispo) VALUES (?, ?, ?, ?, ?)";
 
@@ -140,6 +145,7 @@ public class SeanceDAO extends DataBaseConn {
         }
     }
 
+    @Override
     public boolean update(Seance s) {
     String sql = "UPDATE seances SET idfilm = ?, idsalle = ?, dateseance = ?, heure = ?, placesdispo = ? WHERE id = ?";
 
@@ -170,6 +176,7 @@ public class SeanceDAO extends DataBaseConn {
     // -------------------------------------------------------------------------
     // delete
     // -------------------------------------------------------------------------
+    @Override
     public boolean delete(int id) {
         String sql = "DELETE FROM seances WHERE id = ?";
 
@@ -187,6 +194,7 @@ public class SeanceDAO extends DataBaseConn {
     }
 
     // Renvoie la prochaine seance
+    @Override
     public Seance prochaineSeance() {
         // TODO Auto-generated method stub
         String sql = "SELECT * FROM seances s " +
@@ -211,6 +219,7 @@ public class SeanceDAO extends DataBaseConn {
         return new Seance();
     }
 
+    @Override
     public Seance Meilleurnote() {
         // TODO Auto-generated method stub
         String sql = "SELECT * FROM seances s " +

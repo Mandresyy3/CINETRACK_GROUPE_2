@@ -1,0 +1,74 @@
+/* Réglages valables pour toute l'application */
+.root {
+    -fx-font-size: 14px;
+    -fx-accent: #2563eb;          /* ligne sélectionnée des tableaux */
+    -fx-focus-color: #2563eb;     /* contour du champ actif */
+}
+
+/* Les boutons */
+.button {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+/* Le bouton Supprimer, en rouge */
+.btn-supprimer {
+    -fx-background-color: #dc2626;
+}
+
+.btn-supprimer:hover {
+    -fx-background-color: #b91c1c;
+}
+
+/* Les titres de page */
+.titre {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e3a8a;
+}
+
+/* Les cartes de l'accueil */
+.carte {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe3f3;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 8, 0, 0, 2);
+}
+
+.carte-titre {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #d97706;
+}
+
+.carte-film {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+/* En-têtes des tableaux en gras */
+.table-view .column-header .label {
+    -fx-font-weight: bold;
+}
+
+/* Messages sous les tableaux et erreur de connexion (sélection par fx:id) */
+#lblMessage {
+    -fx-text-fill: #15803d;
+}
+
+#lblErreur {
+    -fx-text-fill: #dc2626;
+}
+/* Les noms d'onglets (texte placé dans un Label) */
+.onglet {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}

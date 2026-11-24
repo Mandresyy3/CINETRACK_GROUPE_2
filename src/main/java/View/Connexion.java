@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import Controleur.UserControleur;
+import main.Main;
 
 public class Connexion extends JFrame {
 
@@ -38,7 +39,7 @@ public class Connexion extends JFrame {
         JPanel connexion = new JPanel(grid1);
 
         userInput = new ArrayList<>();
-        userControleur = new UserControleur();
+        userControleur = Main.userControleur();
 
         ajouterComposent(connexion);
 
